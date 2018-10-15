@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 pipeline {
-  agent { label 'ubuntu' }
+//   agent { label 'ubuntu' }
   environment {
     MAILTRAP_USER = '510e25a65c0cc9'
     MAILTRAP_PASS = '29c15697ae5c53'
@@ -10,7 +10,7 @@ pipeline {
 
   stages {
     stage('Clean') {
-      agent { label 'jenkins' }
+    //   agent { label 'jenkins' }
 
       steps {
         cancelJobs()
