@@ -1,0 +1,95 @@
+#!/bin/bash
+set -e
+
+#===============================================================================
+# globals
+#===============================================================================
+current_branch_name="$(git rev-parse --abbrev-ref HEAD)";
+heroku_remote_prefix="heroku/";
+
+#===============================================================================
+# logging functions
+#===============================================================================
+log() {
+  echo -e "$1";
+}
+
+debug() {
+  log "\033[1;30m==> $@\033[0m";
+}
+error() {
+  log "\033[1;31m✖ $@\033[0m";
+}
+
+info() {
+  log "\033[1;32m==> $@\033[0m";
+}
+
+success() {
+  log "\033[0;32m✔ $@\033[0m";
+}
+
+#===============================================================================
+# deployment functions
+#===============================================================================
+add_heroku_remote() {
+  git remote add $1 $2
+  success "added heroku remote for $1: $2";
+}
+
+add_remote() {
+  info "checking for heroku git remote"
+  check_for_remote $1 $2
+}
+
+check_environment() {
+  if [ -z "$environment" ]; then
+    environment="$1"
+  fi
+
+  if [ -z "$environment" ]; then
+    environment="preview"
+  fi
+
+  if [ "$environment" = "production" ]; then
+    error "production must be deployed manually";
+    exit 0
+  fi
+
+  log "using deployment environment: $environment"
+}
+
+check_for_remote() {
+  local current_remote="$(git config --get remote.$1.url)";
+
+  if [ -z "$current_remote" ]; then
+    info "adding git remote for $1: $2";
+
+    add_heroku_remote $1 $2
+  else
+    debug "found existing git remote for $1: $current_remote, skipping";
+  fi
+}
+
+deploy() {
+  local heroku_remote="$heroku_remote_prefix$1";
+  local heroku_remote_url="https://git.heroku.com/travelbank-$1-api.git";
+
+  info "deploying to heroku";
+  add_remote $heroku_remote $heroku_remote_url
+  info "pushing heroku git remote $heroku_remote: $heroku_remote_url";
+  push_remote $heroku_remote
+}
+
+push_remote() {
+  git push $1 "$current_branch_name:master" --force
+  success "deploy was successfull!";
+}
+
+
+#===============================================================================
+# hold onto your butts
+#===============================================================================
+
+check_environment $1
+deploy $environment

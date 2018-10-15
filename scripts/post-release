@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+MONGODB_URL="$MONGOLAB_URI" yarn migrate || MONGODB_URL="$MONGOLAB_URI" yarn migrate:undo
